@@ -1,0 +1,7 @@
+Метод,Параметры,Итерации,f(x*),Сошлось?
+Momentum,"alpha=0.01, beta=0.9",392,2.582e-18,✓
+Nesterov,"alpha=0.01, beta=0.9",245,1.070e-14,✓
+AdaGrad,alpha=0.2,728,4.873e-19,✓
+RMSProp,"alpha=0.01, rho=0.9",260,4.296e-20,✓
+AdaDelta,rho=0.95,801,2.567e-19,✓
+Adam,"alpha=0.05, beta1=0.9, beta2=0.999",410,4.371e-19,✓

@@ -1,0 +1,19 @@
+Метод,Набор,Параметры,Итерации,f(x*),Сошлось?
+Momentum,set1,"alpha=0.001, beta=0.8",206,3.574e+00,✓
+Momentum,set2,"alpha=0.003, beta=0.9",371,3.574e+00,✓
+Momentum,set3,"alpha=0.005, beta=0.95",791,2.580e+00,✓
+Nesterov,set1,"alpha=0.001, beta=0.8",170,3.574e+00,✓
+Nesterov,set2,"alpha=0.003, beta=0.9",158,3.574e+00,✓
+Nesterov,set3,"alpha=0.005, beta=0.95",137,3.574e+00,✓
+AdaGrad,set1,alpha=0.01,5487,3.574e+00,✓
+AdaGrad,set2,alpha=0.05,1047,3.574e+00,✓
+AdaGrad,set3,alpha=0.1,54,3.574e+00,✓
+RMSProp,set1,"alpha=0.003, rho=0.9",—,3.575e+00,✗
+RMSProp,set2,"alpha=0.005, rho=0.95",—,3.575e+00,✗
+RMSProp,set3,"alpha=0.01, rho=0.99",—,3.576e+00,✗
+AdaDelta,set1,rho=0.9,—,3.957e+00,✗
+AdaDelta,set2,rho=0.95,—,3.863e+00,✗
+AdaDelta,set3,rho=0.99,105,3.574e+00,✓
+Adam,set1,"alpha=0.01, beta1=0.85, beta2=0.99",257,3.574e+00,✓
+Adam,set2,"alpha=0.02, beta1=0.9, beta2=0.999",378,3.574e+00,✓
+Adam,set3,"alpha=0.03, beta1=0.95, beta2=0.999",739,3.574e+00,✓
