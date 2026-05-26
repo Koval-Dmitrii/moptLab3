@@ -1,13 +1,23 @@
+# functions/quadratic.py
+
 import numpy as np
 
-class QuadraticWellConditioned:
-    """Хорошо обусловленная квадратичная функция: f(x,y) = x² + y² (κ=1) - глобальный минимум в (0,0)"""
-    name = "Quadratic (well-cond, κ=1)"
-    A = np.array([[2.0, 0.0], [0.0, 2.0]])
-    x_opt = np.array([0.0, 0.0])
+
+class QuadraticFunction:
+    """
+    Базовая квадратичная функция:
+
+        f(x) = 0.5 * x^T A x
+    """
+
+    name: str = "Quadratic"
+
+    A: np.ndarray
+
+    x_opt: np.ndarray = np.zeros(2)
 
     def f(self, x: np.ndarray) -> float:
-        return float(x @ self.A @ x / 2)
+        return float(0.5 * x @ self.A @ x)
 
     def grad(self, x: np.ndarray) -> np.ndarray:
         return self.A @ x
@@ -16,17 +26,31 @@ class QuadraticWellConditioned:
         return self.A
 
 
-class QuadraticIllConditioned:
-    """Плохо обусловленная квадратичная функция: f(x,y) = 50x² + 0.5y² (κ=100) - глобальный минимум в (0,0)"""
-    name = "Quadratic (ill-cond, κ=100)"
-    A = np.array([[100.0, 0.0], [0.0, 1.0]])
-    x_opt = np.array([0.0, 0.0])
+class QuadraticWellConditioned(QuadraticFunction):
+    """
+    Хорошо обусловленная квадратичная функция.
 
-    def f(self, x: np.ndarray) -> float:
-        return float(x @ self.A @ x / 2)
+    κ = 1
+    """
 
-    def grad(self, x: np.ndarray) -> np.ndarray:
-        return self.A @ x
+    name: str = "Quadratic (well-cond, κ=1)"
 
-    def hessian(self) -> np.ndarray:
-        return self.A
+    A = np.array([
+        [2.0, 0.0],
+        [0.0, 2.0],
+    ])
+
+
+class QuadraticIllConditioned(QuadraticFunction):
+    """
+    Плохо обусловленная квадратичная функция.
+
+    κ = 100
+    """
+
+    name: str = "Quadratic (ill-cond, κ=100)"
+
+    A = np.array([
+        [100.0, 0.0],
+        [0.0, 1.0],
+    ])

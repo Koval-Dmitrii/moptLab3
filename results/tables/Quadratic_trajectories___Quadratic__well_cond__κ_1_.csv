@@ -1,6 +1,6 @@
 Метод,Параметры,Итерации,f(x*),Сошлось?
-Momentum,"alpha=0.01, beta=0.9",338,2.404e-17,✓
-Nesterov,"alpha=0.01, beta=0.9",252,3.470e-15,✓
+Momentum,"alpha=0.01, beta=0.9",231,1.934e-10,✓
+Nesterov,"alpha=0.01, beta=0.9",204,2.449e-12,✓
 AdaGrad,alpha=0.2,617,2.384e-17,✓
 RMSProp,"alpha=0.01, rho=0.9",257,2.375e-17,✓
 AdaDelta,rho=0.95,794,1.808e-17,✓

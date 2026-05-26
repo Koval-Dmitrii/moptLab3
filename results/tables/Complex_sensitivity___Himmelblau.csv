@@ -1,19 +1,19 @@
 Метод,Набор,Параметры,Итерации,f(x*),Сошлось?
-Momentum,set1,"alpha=0.001, beta=0.8",210,1.400e-18,✓
-Momentum,set2,"alpha=0.003, beta=0.9",441,1.037e-18,✓
-Momentum,set3,"alpha=0.005, beta=0.95",817,2.951e-21,✓
-Nesterov,set1,"alpha=0.001, beta=0.8",169,1.960e-17,✓
-Nesterov,set2,"alpha=0.003, beta=0.9",196,1.166e-15,✓
-Nesterov,set3,"alpha=0.005, beta=0.95",208,7.131e-17,✓
-AdaGrad,set1,alpha=0.01,—,1.035e-05,✗
-AdaGrad,set2,alpha=0.05,12331,1.762e-18,✓
-AdaGrad,set3,alpha=0.1,3141,1.768e-18,✓
-RMSProp,set1,"alpha=0.003, rho=0.9",—,1.663e-04,✗
-RMSProp,set2,"alpha=0.005, rho=0.95",—,4.617e-04,✗
-RMSProp,set3,"alpha=0.01, rho=0.99",597,1.477e-18,✓
-AdaDelta,set1,rho=0.9,—,1.886e+00,✗
-AdaDelta,set2,rho=0.95,—,1.472e+00,✗
-AdaDelta,set3,rho=0.99,1000,1.688e-18,✓
+Momentum,set1,"alpha=0.001, beta=0.8",168,9.189e-14,✓
+Momentum,set2,"alpha=0.003, beta=0.9",324,6.946e-13,✓
+Momentum,set3,"alpha=0.001, beta=0.9",338,7.791e-14,✓
+Nesterov,set1,"alpha=0.001, beta=0.8",116,1.837e-12,✓
+Nesterov,set2,"alpha=0.001, beta=0.9",213,5.301e-12,✓
+Nesterov,set3,"alpha=0.0005, beta=0.9",229,1.652e-11,✓
+AdaGrad,set1,alpha=0.05,12331,1.762e-18,✓
+AdaGrad,set2,alpha=0.1,3141,1.768e-18,✓
+AdaGrad,set3,alpha=0.2,813,1.784e-18,✓
+RMSProp,set1,"alpha=0.02, rho=0.9",184,9.953e-16,✓
+RMSProp,set2,"alpha=0.05, rho=0.9",90,1.408e-15,✓
+RMSProp,set3,"alpha=0.01, rho=0.95",371,1.009e-14,✓
+AdaDelta,set1,rho=0.99,1000,1.688e-18,✓
+AdaDelta,set2,rho=0.999,620,1.799e-18,✓
+AdaDelta,set3,rho=0.95,—,1.472e+00,✗
 Adam,set1,"alpha=0.01, beta1=0.85, beta2=0.99",631,1.669e-18,✓
 Adam,set2,"alpha=0.02, beta1=0.9, beta2=0.999",552,1.332e-18,✓
-Adam,set3,"alpha=0.03, beta1=0.95, beta2=0.999",917,7.280e-19,✓
+Adam,set3,"alpha=0.05, beta1=0.9, beta2=0.999",442,1.332e-18,✓
