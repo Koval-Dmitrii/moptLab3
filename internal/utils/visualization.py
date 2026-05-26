@@ -49,7 +49,7 @@ def plot_contour_with_trajectory(
     ax.set_title(title, fontsize=13)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.legend(loc="upper right", fontsize=7)
+    ax.legend(loc="best", fontsize=7)
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
 
