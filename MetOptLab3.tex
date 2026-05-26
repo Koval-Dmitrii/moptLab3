@@ -1,367 +1,648 @@
 \documentclass[a4paper,12pt]{article}
+
+% =========================================================
+% Packages
+% =========================================================
+
 \usepackage[utf8]{inputenc}
 \usepackage[T2A]{fontenc}
 \usepackage[russian]{babel}
-\usepackage{amsmath, amssymb, amsthm}
+
+\usepackage{amsmath,amssymb,amsthm}
 \usepackage{geometry}
 \usepackage{booktabs}
 \usepackage{array}
-\usepackage{hyperref}
-\usepackage{xcolor}
-\usepackage{graphicx}
 \usepackage{float}
-\usepackage{caption}
+\usepackage{graphicx}
 \usepackage{subcaption}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning}
+\usepackage{xcolor}
+\usepackage{hyperref}
 
-\geometry{left=2.5cm, right=2cm, top=2cm, bottom=2cm}
+\geometry{
+    left=2.5cm,
+    right=2cm,
+    top=2cm,
+    bottom=2cm
+}
 
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue!70!black,
-    urlcolor=blue!70!black,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
     citecolor=red!70!black
 }
 
-\title{Лабораторная работа №3\\Модификации градиентного спуска}
-\author{Георгий Лаврентьев, Дмитрий Коваль - студенты группы М3232}
-\date{11 мая 2026 г.}
+% =========================================================
+% Commands
+% =========================================================
 
 \newcommand{\R}{\mathbb{R}}
-\newcommand{\norm}[1]{\left\|#1\right\|}
 \newcommand{\grad}{\nabla}
+\newcommand{\norm}[1]{\left\|#1\right\|}
 \newcommand{\eps}{\varepsilon}
 
-\theoremstyle{definition}
-\newtheorem{definition}{Определение}[section]
-\newtheorem{theorem}{Теорема}[section]
-\newtheorem{remark}{Замечание}[section]
+% =========================================================
+% Title
+% =========================================================
+
+\title{
+    \textbf{Лабораторная работа №3}\\
+    Модификации градиентного спуска
+}
+
+\author{
+    Георгий Лаврентьев, Дмитрий Коваль\\
+    группа М3232
+}
+
+\date{Май 2026}
+
+% =========================================================
+% Document
+% =========================================================
 
 \begin{document}
+
 \maketitle
-\vspace{-20pt}
+\vspace{-1em}
 
-% ═════════════════════════════════════════════════════════════
+% =========================================================
 \section{Постановка задачи}
-% ═════════════════════════════════════════════════════════════
+% =========================================================
 
-Рассматривается задача безусловной минимизации
+В работе исследуются модификации градиентного спуска
+для задачи безусловной минимизации
+
 \[
-    \min_{x \in \R^n} f(x),
+f(x)\to\min,
+\qquad
+f:\R^n\to\R,
+\qquad
+f\in C^1(\R^n).
 \]
-где $f$ --- дифференцируемая функция.
 
-В работе реализованы и исследованы шесть модификаций градиентного спуска:
+Рассматриваются следующие методы:
+
 \begin{enumerate}
     \item Momentum;
-    \item Nesterov;
+    \item Nesterov momentum;
     \item AdaGrad;
     \item RMSProp;
     \item AdaDelta;
     \item Adam.
 \end{enumerate}
 
-Тестовые задачи:
+Исследование проводится на:
+
 \begin{itemize}
-    \item хорошо обусловленная выпуклая квадратичная функция;
-    \item плохо обусловленная выпуклая квадратичная функция;
-    \item функции Розенброка, Экли и Химмельблау.
+    \item хорошо обусловленной квадратичной функции;
+    \item плохо обусловленной квадратичной функции;
+    \item функции Розенброка;
+    \item функции Экли;
+    \item функции Химмельблау.
 \end{itemize}
 
-Во всех экспериментах использована фиксированная точность
+Критерием остановки является условие
+
 \[
-    \norm{\grad f(x_k)} < \eps, \qquad \eps = 10^{-8}.
+\norm{\grad f(x_k)} < 10^{-8}.
 \]
 
-% ═════════════════════════════════════════════════════════════
-\section{Описание методов}
-% ═════════════════════════════════════════════════════════════
+% =========================================================
+\section{Теоретические сведения}
+% =========================================================
 
-\subsection{Momentum}
-\[
-v_{k+1} = \beta v_k + \grad f(x_k), \qquad
-x_{k+1} = x_k - \alpha v_{k+1}.
-\]
-Параметры: шаг $\alpha > 0$, коэффициент инерции $\beta \in (0,1)$.
+% =========================================================
+\subsection{Общая логика модификаций}
+% =========================================================
 
-\subsection{Nesterov}
-\[
-\tilde{x}_k = x_k - \beta v_k,\quad
-v_{k+1} = \beta v_k + \alpha \grad f(\tilde{x}_k),\quad
-x_{k+1} = x_k - v_{k+1}.
-\]
-Градиент берётся в точке ``заглядывания'' $\tilde{x}_k$.
+Большинство современных модификаций градиентного спуска
+имеют вид
 
-\subsection{AdaGrad}
 \[
-G_{k+1} = G_k + (\grad f(x_k))^2,\qquad
-x_{k+1} = x_k - \alpha \frac{\grad f(x_k)}{\sqrt{G_{k+1}} + \delta}.
-\]
-Параметр: начальный шаг $\alpha$, стабилизатор $\delta$.
-
-\subsection{RMSProp}
-\[
-S_{k+1} = \rho S_k + (1-\rho)(\grad f(x_k))^2,\qquad
-x_{k+1} = x_k - \alpha \frac{\grad f(x_k)}{\sqrt{S_{k+1}} + \delta}.
-\]
-Параметры: $\alpha$, коэффициент сглаживания $\rho$.
-
-\subsection{AdaDelta}
-\[
-E[g^2]_{k+1} = \rho E[g^2]_k + (1-\rho)g_k^2,
-\]
-\[
-\Delta x_k = -\frac{\sqrt{E[\Delta x^2]_k+\delta}}{\sqrt{E[g^2]_{k+1}+\delta}}\,g_k,\qquad
-x_{k+1}=x_k+\Delta x_k.
-\]
-В базовой форме отдельный learning rate не используется.
-
-\subsection{Adam}
-\[
-m_{k+1}=\beta_1m_k+(1-\beta_1)g_k,\qquad
-v_{k+1}=\beta_2v_k+(1-\beta_2)g_k^2,
-\]
-\[
-\hat m_{k+1}=\frac{m_{k+1}}{1-\beta_1^{k+1}},\qquad
-\hat v_{k+1}=\frac{v_{k+1}}{1-\beta_2^{k+1}},
-\]
-\[
-x_{k+1}=x_k-\alpha\frac{\hat m_{k+1}}{\sqrt{\hat v_{k+1}}+\delta}.
-\]
-Параметры: $\alpha$, $\beta_1$, $\beta_2$.
-
-% ═════════════════════════════════════════════════════════════
-\section{Тестовые функции}
-% ═════════════════════════════════════════════════════════════
-
-\subsection{Квадратичные функции}
-\[
-f(x,y)=x^2+y^2,\qquad \kappa=1,
-\]
-\[
-g(x,y)=50x^2+\frac{1}{2}y^2,\qquad \kappa=100.
+x_{k+1}=x_k-\alpha_k p_k,
 \]
 
-\subsection{Сложные функции}
-\[
-f_R(x,y)=(1-x)^2+100(y-x^2)^2,
-\]
-\[
-f_A(x,y)=-20e^{-0.2\sqrt{(x^2+y^2)/2}}-e^{(\cos 2\pi x+\cos 2\pi y)/2}+20+e,
-\]
-\[
-f_H(x,y)=(x^2+y-11)^2+(x+y^2-7)^2.
-\]
+где направление $p_k$ строится не только по текущему
+градиенту, но и с использованием внутреннего состояния
+метода.
 
-% ═════════════════════════════════════════════════════════════
-\section{Экспериментальная часть}
-% ═════════════════════════════════════════════════════════════
-
-\subsection{Задание 1: Исследование параметров на квадратичных функциях}
-
-Для каждого метода выполнены серии экспериментов:
-\begin{itemize}
-    \item для методов с одним параметром (AdaGrad, AdaDelta) --- line-графики;
-    \item для методов с двумя параметрами (Momentum, Nesterov, RMSProp, Adam) --- heatmap.
-\end{itemize}
-Полные таблицы сохранены в \texttt{results/tables/Quadratic\_*}.
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_line_quadratic__well_cond__kappa_1_adagrad_alpha.png}
-        \caption{AdaGrad, $\kappa=1$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_line_quadratic__ill_cond__kappa_100_adagrad_alpha.png}
-        \caption{AdaGrad, $\kappa=100$}
-    \end{subfigure}
-    \caption{Зависимость числа итераций от параметра $\alpha$ для AdaGrad.}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_line_quadratic__well_cond__kappa_1_adadelta_rho.png}
-        \caption{AdaDelta, $\kappa=1$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_line_quadratic__ill_cond__kappa_100_adadelta_rho.png}
-        \caption{AdaDelta, $\kappa=100$}
-    \end{subfigure}
-    \caption{Зависимость числа итераций от параметра $\rho$ для AdaDelta.}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_heat_quadratic__well_cond__kappa_1_momentum_alpha_beta.png}
-        \caption{Momentum, $\kappa=1$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_heat_quadratic__ill_cond__kappa_100_momentum_alpha_beta.png}
-        \caption{Momentum, $\kappa=100$}
-    \end{subfigure}
-    \caption{Heatmap зависимости числа итераций от $(\alpha,\beta)$ для Momentum.}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_heat_quadratic__well_cond__kappa_1_adam_beta1_beta2.png}
-        \caption{Adam, $\kappa=1$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_heat_quadratic__ill_cond__kappa_100_adam_beta1_beta2.png}
-        \caption{Adam, $\kappa=100$}
-    \end{subfigure}
-    \caption{Heatmap зависимости числа итераций от $(\beta_1,\beta_2)$ для Adam.}
-\end{figure}
-
-\subsection{Задание 2: Траектории на квадратичных функциях}
-
-Для каждого метода выбран по одному рабочему набору параметров.
-
-\begin{table}[H]
-\centering
-\caption{Результаты на хорошо обусловленной квадратике ($\kappa=1$).}
-\begin{tabular}{lccc}
-\toprule
-Метод & Параметры & Итерации & $f(x^*)$ \\
-\midrule
-Momentum & $\alpha=0.01,\;\beta=0.9$ & 338 & $2.404\cdot10^{-17}$ \\
-Nesterov & $\alpha=0.01,\;\beta=0.9$ & 252 & $3.470\cdot10^{-15}$ \\
-AdaGrad & $\alpha=0.2$ & 617 & $2.384\cdot10^{-17}$ \\
-RMSProp & $\alpha=0.01,\;\rho=0.9$ & 257 & $2.375\cdot10^{-17}$ \\
-AdaDelta & $\rho=0.95$ & 794 & $1.808\cdot10^{-17}$ \\
-Adam & $\alpha=0.05,\;\beta_1=0.9,\;\beta_2=0.999$ & 353 & $1.073\cdot10^{-18}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Результаты на плохо обусловленной квадратике ($\kappa=100$).}
-\begin{tabular}{lccc}
-\toprule
-Метод & Параметры & Итерации & $f(x^*)$ \\
-\midrule
-Momentum & $\alpha=0.01,\;\beta=0.9$ & 392 & $2.582\cdot10^{-18}$ \\
-Nesterov & $\alpha=0.01,\;\beta=0.9$ & 245 & $1.070\cdot10^{-14}$ \\
-AdaGrad & $\alpha=0.2$ & 728 & $4.873\cdot10^{-19}$ \\
-RMSProp & $\alpha=0.01,\;\rho=0.9$ & 260 & $4.296\cdot10^{-20}$ \\
-AdaDelta & $\rho=0.95$ & 801 & $2.567\cdot10^{-19}$ \\
-Adam & $\alpha=0.05,\;\beta_1=0.9,\;\beta_2=0.999$ & 410 & $4.371\cdot10^{-19}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_traj_well.png}
-        \caption{$\kappa=1$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{results/plots/fig_quad_traj_ill.png}
-        \caption{$\kappa=100$}
-    \end{subfigure}
-    \caption{Траектории выбранных настроек методов на квадратичных функциях.}
-\end{figure}
-
-\subsection{Задание 3: Чувствительность на сложных функциях}
-
-Для каждого метода протестированы 2--3 набора параметров на функциях Розенброка, Экли и Химмельблау.
-Ниже --- лучший сошедшийся набор для каждой функции (по числу итераций).
-
-\begin{table}[H]
-\centering
-\caption{Лучшие параметры для функции Розенброка.}
-\begin{tabular}{lccc}
-\toprule
-Метод & Лучший набор & Итерации & Комментарий \\
-\midrule
-Momentum & $\alpha=0.003,\;\beta=0.9$ & 1232 & сошёлся \\
-Nesterov & $\alpha=0.001,\;\beta=0.8$ & 8647 & сошёлся, медленно \\
-AdaGrad & $\alpha=0.1$ & 26142 & сошёлся, очень медленно \\
-RMSProp & --- & --- & не сошёлся на всех наборах \\
-AdaDelta & --- & --- & не сошёлся на всех наборах \\
-Adam & $\alpha=0.03,\;\beta_1=0.95,\;\beta_2=0.999$ & 1129 & лучший результат \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Лучшие параметры для функции Экли.}
-\begin{tabular}{lccc}
-\toprule
-Метод & Лучший набор & Итерации & $f(x^*)$ \\
-\midrule
-Momentum & $\alpha=0.001,\;\beta=0.8$ & 206 & 3.574 \\
-Nesterov & $\alpha=0.005,\;\beta=0.95$ & 137 & 3.574 \\
-AdaGrad & $\alpha=0.1$ & 54 & 3.574 \\
-RMSProp & --- & --- & не сошёлся \\
-AdaDelta & $\rho=0.99$ & 105 & 3.574 \\
-Adam & $\alpha=0.01,\;\beta_1=0.85,\;\beta_2=0.99$ & 257 & 3.574 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Лучшие параметры для функции Химмельблау.}
-\begin{tabular}{lccc}
-\toprule
-Метод & Лучший набор & Итерации & $f(x^*)$ \\
-\midrule
-Momentum & $\alpha=0.001,\;\beta=0.8$ & 210 & $1.400\cdot10^{-18}$ \\
-Nesterov & $\alpha=0.001,\;\beta=0.8$ & 169 & $1.960\cdot10^{-17}$ \\
-AdaGrad & $\alpha=0.1$ & 3141 & $1.768\cdot10^{-18}$ \\
-RMSProp & $\alpha=0.01,\;\rho=0.99$ & 597 & $1.477\cdot10^{-18}$ \\
-AdaDelta & $\rho=0.99$ & 1000 & $1.688\cdot10^{-18}$ \\
-Adam & $\alpha=0.02,\;\beta_1=0.9,\;\beta_2=0.999$ & 552 & $1.332\cdot10^{-18}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Задание 4: Траектории на сложных функциях}
-
-Для каждого метода выбран один параметрический набор, а для каждой функции --- три стартовые точки.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.78\textwidth]{results/plots/fig_complex_traj_rosenbrock.png}
-    \caption{Траектории методов на функции Розенброка.}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.78\textwidth]{results/plots/fig_complex_traj_ackley.png}
-    \caption{Траектории методов на функции Экли.}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.78\textwidth]{results/plots/fig_complex_traj_himmelblau.png}
-    \caption{Траектории методов на функции Химмельблау.}
-\end{figure}
-
-% ═════════════════════════════════════════════════════════════
-\section{Общие выводы}
-% ═════════════════════════════════════════════════════════════
+Методы можно разделить на две группы:
 
 \begin{enumerate}
-    \item Для квадратичных задач все методы дают сходимость при корректной настройке параметров, но чувствительность к параметрам у методов существенно различается.
-    \item На функции Розенброка наиболее устойчивыми в текущих сетках оказались Momentum и Adam; RMSProp и AdaDelta потребовали бы дополнительного подбора.
-    \item На многоэкстремальных функциях (Экли, Химмельблау) итог зависит от стартовой точки и настроек, что подтверждается различием траекторий.
-    \item Формат экспериментов ``таблицы + line/heatmap + траектории'' обеспечивает прямое соответствие требованиям задания лабораторной.
+    \item методы с памятью направления:
+    Momentum, Nesterov;
+
+    \item адаптивные покоординатные методы:
+    AdaGrad, RMSProp, AdaDelta, Adam.
+\end{enumerate}
+
+В данной работе рассматривается детерминированная постановка,
+то есть используется точный градиент
+
+\[
+g_k=\grad f(x_k).
+\]
+
+% =========================================================
+\subsection{Momentum}
+% =========================================================
+
+Метод Momentum задаётся формулами
+
+\[
+m_{k+1}=\beta m_k+g_k,
+\]
+
+\[
+x_{k+1}=x_k-\alpha m_{k+1}.
+\]
+
+Параметр $\beta\in[0,1)$ отвечает за силу инерции.
+
+Метод использует сглаженную сумму предыдущих градиентов,
+что уменьшает поперечные колебания в узких оврагах.
+
+При слишком больших $\alpha$ и $\beta$
+метод может перелетать через минимум,
+что приводит к расходимости.
+
+% =========================================================
+\subsection{Nesterov}
+% =========================================================
+
+Метод Нестерова:
+
+\[
+y_k=x_k+\beta(x_k-x_{k-1}),
+\]
+
+\[
+x_{k+1}=y_k-\alpha \grad f(y_k).
+\]
+
+В отличие от Momentum,
+градиент вычисляется в предсказанной точке $y_k$.
+
+Это позволяет раньше замечать изменение геометрии функции
+и уменьшать излишние колебания траектории.
+
+% =========================================================
+\subsection{AdaGrad}
+% =========================================================
+
+AdaGrad определяется соотношениями
+
+\[
+G_{k+1}=G_k+g_k^2,
+\]
+
+\[
+x_{k+1}
+=
+x_k
+-
+\alpha
+\frac{g_k}{\sqrt{G_{k+1}}+\eps}.
+\]
+
+Метод автоматически уменьшает шаг
+по координатам с большими градиентами.
+
+Главный недостаток AdaGrad —
+монотонное накопление $G_k$,
+из-за чего шаг со временем стремится к нулю.
+
+% =========================================================
+\subsection{RMSProp}
+% =========================================================
+
+Метод RMSProp:
+
+\[
+G_{k+1}
+=
+\rho G_k
++
+(1-\rho)g_k^2,
+\]
+
+\[
+x_{k+1}
+=
+x_k
+-
+\alpha
+\frac{g_k}{\sqrt{G_{k+1}}+\eps}.
+\]
+
+В отличие от AdaGrad,
+используется экспоненциальное забывание старой информации.
+
+Параметр $\rho$ задаёт длину памяти метода.
+
+% =========================================================
+\subsection{AdaDelta}
+% =========================================================
+
+AdaDelta определяется формулами
+
+\[
+G_{k+1}
+=
+\rho G_k+(1-\rho)g_k^2,
+\]
+
+\[
+\Delta x_k
+=
+-
+\frac{\sqrt{u_k+\eps}}
+{\sqrt{G_{k+1}+\eps}}
+g_k,
+\]
+
+\[
+u_{k+1}
+=
+\rho u_k
++
+(1-\rho)(\Delta x_k)^2,
+\]
+
+\[
+x_{k+1}=x_k+\Delta x_k.
+\]
+
+В методе одновременно адаптируются:
+
+\begin{itemize}
+    \item статистика градиентов;
+    \item статистика самих смещений.
+\end{itemize}
+
+% =========================================================
+\subsection{Adam}
+% =========================================================
+
+Метод Adam:
+
+\[
+m_{k+1}
+=
+\beta_1m_k+(1-\beta_1)g_k,
+\]
+
+\[
+v_{k+1}
+=
+\beta_2v_k+(1-\beta_2)g_k^2,
+\]
+
+\[
+\hat m_{k+1}
+=
+\frac{m_{k+1}}{1-\beta_1^{k+1}},
+\]
+
+\[
+\hat v_{k+1}
+=
+\frac{v_{k+1}}{1-\beta_2^{k+1}},
+\]
+
+\[
+x_{k+1}
+=
+x_k
+-
+\alpha
+\frac{\hat m_{k+1}}
+{\sqrt{\hat v_{k+1}}+\eps}.
+\]
+
+Adam сочетает идеи Momentum и RMSProp.
+
+% =========================================================
+\section{Тестовые функции}
+% =========================================================
+
+% =========================================================
+\subsection{Квадратичные функции}
+% =========================================================
+
+Хорошо обусловленная функция:
+
+\[
+f(x,y)=x^2+y^2.
+\]
+
+:contentReference[oaicite:0]{index=0}
+
+Плохо обусловленная функция:
+
+\[
+g(x,y)=50x^2+\frac12 y^2.
+\]
+
+:contentReference[oaicite:1]{index=1}
+
+% =========================================================
+\subsection{Функция Розенброка}
+% =========================================================
+
+\[
+f(x,y)
+=
+(1-x)^2+100(y-x^2)^2.
+\]
+
+:contentReference[oaicite:2]{index=2}
+
+% =========================================================
+\subsection{Функция Экли}
+% =========================================================
+
+\[
+f(x,y)
+=
+-20e^{-0.2\sqrt{(x^2+y^2)/2}}
+-
+e^{(\cos 2\pi x+\cos 2\pi y)/2}
++20+e.
+\]
+
+% =========================================================
+\subsection{Функция Химмельблау}
+% =========================================================
+
+\[
+f(x,y)
+=
+(x^2+y-11)^2+(x+y^2-7)^2.
+\]
+
+% =========================================================
+\section{Исследование параметров}
+% =========================================================
+
+Для каждого метода проводилось исследование зависимости
+сходимости от параметров.
+
+Для методов с одним параметром использовались line-графики,
+для методов с двумя параметрами --- heatmap.
+
+% =========================================================
+\subsection{AdaGrad}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_line_quadratic__well_cond__kappa_1_adagrad_alpha.png}
+\caption{$\kappa=1$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_line_quadratic__ill_cond__kappa_100_adagrad_alpha.png}
+\caption{$\kappa=100$}
+\end{subfigure}
+
+\caption{AdaGrad: зависимость числа итераций от $\alpha$.}
+\end{figure}
+
+На малых $\alpha$ метод сходится медленно,
+а на больших $\alpha$ возможны колебания.
+
+Кроме того,
+на больших числах итераций наблюдается замедление,
+связанное с накоплением величины
+
+\[
+G_k=\sum_{t=0}^{k}g_t^2.
+\]
+
+Из-за этого эффективный шаг постепенно уменьшается почти до нуля.
+
+% =========================================================
+\subsection{Momentum}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_heat_quadratic__well_cond__kappa_1_momentum_alpha_beta.png}
+\caption{$\kappa=1$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_heat_quadratic__ill_cond__kappa_100_momentum_alpha_beta.png}
+\caption{$\kappa=100$}
+\end{subfigure}
+
+\caption{Momentum: heatmap по параметрам $(\alpha,\beta)$.}
+\end{figure}
+
+При больших значениях $\alpha$ и $\beta$
+метод становится неустойчивым.
+
+Инерционный член
+
+\[
+\beta(x_k-x_{k-1})
+\]
+
+начинает доминировать,
+из-за чего траектория перелетает через минимум.
+
+На плохо обусловленной функции это особенно заметно:
+траектория начинает колебаться поперёк узкой долины.
+
+% =========================================================
+\subsection{Adam}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_heat_quadratic__well_cond__kappa_1_adam_beta1_beta2.png}
+\caption{$\kappa=1$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_heat_quadratic__ill_cond__kappa_100_adam_beta1_beta2.png}
+\caption{$\kappa=100$}
+\end{subfigure}
+
+\caption{Adam: зависимость сходимости от $(\beta_1,\beta_2)$.}
+\end{figure}
+
+При слишком больших $\beta_1$ и $\beta_2$
+внутренние статистики обновляются слишком медленно.
+
+Метод начинает поздно реагировать
+на изменение геометрии функции,
+что увеличивает число итераций.
+
+% =========================================================
+\section{Траектории методов}
+% =========================================================
+
+% =========================================================
+\subsection{Квадратичные функции}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_traj_well.png}
+\caption{$\kappa=1$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]
+{results/plots/fig_quad_traj_ill.png}
+\caption{$\kappa=100$}
+\end{subfigure}
+
+\caption{Траектории методов на квадратичных функциях.}
+\end{figure}
+
+На плохо обусловленной квадратичной функции
+обычный градиентный спуск и Momentum
+демонстрируют выраженные поперечные колебания.
+
+Nesterov корректирует траекторию раньше,
+поэтому движение оказывается более устойчивым.
+
+% =========================================================
+\subsection{Функция Розенброка}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]
+{results/plots/fig_complex_traj_rosenbrock.png}
+
+\caption{Траектории на функции Розенброка.}
+\end{figure}
+
+Функция Розенброка содержит узкий изогнутый овраг.
+
+Из-за этого методы с большим шагом
+часто перелетают через дно оврага
+и начинают совершать колебания.
+
+Adam и Momentum оказались наиболее устойчивыми.
+
+% =========================================================
+\subsection{Функция Экли}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]
+{results/plots/fig_complex_traj_ackley.png}
+
+\caption{Траектории на функции Экли.}
+\end{figure}
+
+Функция Экли имеет большое число локальных минимумов.
+
+Траектория существенно зависит от стартовой точки
+и параметров метода.
+
+% =========================================================
+\subsection{Функция Химмельблау}
+% =========================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]
+{results/plots/fig_complex_traj_himmelblau.png}
+
+\caption{Траектории на функции Химмельблау.}
+\end{figure}
+
+На функции Химмельблау методы могут сходиться
+к различным локальным минимумам.
+
+% =========================================================
+\section{Причины расходимости}
+% =========================================================
+
+\begin{table}[H]
+\centering
+\caption{Основные причины неустойчивости методов}
+\begin{tabular}{p{3cm} p{10cm}}
+\toprule
+Метод & Причина расходимости \\
+\midrule
+
+Momentum &
+слишком сильная инерция и перелёты через минимум \\
+
+Nesterov &
+слишком агрессивная экстраполяция \\
+
+AdaGrad &
+затухание эффективного шага почти до нуля \\
+
+RMSProp &
+нестабильное локальное масштабирование \\
+
+AdaDelta &
+сложная динамика адаптации числителя и знаменателя \\
+
+Adam &
+слишком медленное обновление статистик при больших $\beta_1,\beta_2$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =========================================================
+\section{Выводы}
+% =========================================================
+
+\begin{enumerate}
+
+\item
+Momentum и Nesterov уменьшают поперечные колебания
+и ускоряют движение вдоль оврагов.
+
+\item
+AdaGrad автоматически уменьшает шаг по активным координатам,
+но может слишком сильно замедляться.
+
+\item
+RMSProp устраняет главный недостаток AdaGrad
+за счёт экспоненциального забывания.
+
+\item
+AdaDelta дополнительно адаптирует масштаб самих смещений,
+что делает динамику метода более сложной.
+
+\item
+Adam сочетает идеи Momentum и RMSProp
+и в большинстве экспериментов показал наиболее устойчивое поведение.
+
+\item
+На плохо обусловленных и многоэкстремальных функциях
+результат существенно зависит от параметров метода
+и стартовой точки.
+
 \end{enumerate}
 
 \end{document}
