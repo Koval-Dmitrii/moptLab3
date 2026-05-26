@@ -1,5 +1,3 @@
-# functions/himmelblau.py
-
 import numpy as np
 
 

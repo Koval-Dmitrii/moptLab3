@@ -1,5 +1,3 @@
-# functions/ackley.py
-
 import numpy as np
 
 

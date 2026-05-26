@@ -1,5 +1,3 @@
-# functions/quadratic.py
-
 import numpy as np
 
 

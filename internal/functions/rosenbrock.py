@@ -1,5 +1,3 @@
-# functions/rosenbrock.py
-
 import numpy as np
 
 
